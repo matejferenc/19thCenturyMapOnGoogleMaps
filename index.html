@@ -1,0 +1,109 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Historicka mapa 19 stoleti na Google Maps</title>
+    <style>
+        #map {
+            height: 100%;
+        }
+        /* Optional: Makes the sample page fill the window. */
+        html, body {
+            height: 100%;
+            margin: 0;
+            padding: 0;
+        }
+		#opacity {
+            position: absolute;
+			top: 70px;
+			left: 10px;
+			height: 150px;
+			width: 20px;
+			writing-mode: bt-lr; /* IE */
+			-webkit-appearance: slider-vertical; /* WebKit */
+			background: #ffffff;
+		}
+		#controls {
+			background: #aabbcc;
+		}
+    </style>
+</head>
+<body onload="load();">
+<div id="map"></div>
+<div id="controls">
+    <input type="range" min="1" max="100" step="1" id="opacity" value="50" oninput="updateSlider(this.value)" title="Use Shift + Mouse wheel to change opacity">
+</div>
+<script>
+
+	function load() {
+		var mapdiv = document.getElementById("map").childNodes[0].childNodes[0].childNodes[0].childNodes[2];
+		mapdiv.addEventListener("mousewheel", mouseWheelHandler, false);
+	}
+
+	function mouseWheelHandler(event) {
+		if (event.shiftKey) {
+			var delta = Math.max(-1, Math.min(1, event.wheelDelta));
+			updateSlider(7 * delta + 100 * opacity);
+			event.stopPropagation();
+		}
+	}
+
+    function CoordMapType(tileSize) {
+        this.tileSize = tileSize;
+    }
+
+	/*
+    CoordMapType.prototype.getTile = function(coord, zoom, ownerDocument) {
+        var div = ownerDocument.createElement('div');
+        div.innerHTML = "zoom:" + zoom + ", coords: " + coord;
+        div.style.width = this.tileSize.width + 'px';
+        div.style.height = this.tileSize.height + 'px';
+        div.style.fontSize = '10';
+        div.style.borderStyle = 'solid';
+        div.style.borderWidth = '1px';
+        div.style.borderColor = '#AAAAAA';
+        return div;
+    };
+	*/
+
+	var imageMapType;
+
+    function initMap() {
+        var map = new google.maps.Map(document.getElementById('map'), {
+            zoom: 10,
+            center: {lat: 50.0850417, lng: 14.4320013},
+            mapTypeId: google.maps.MapTypeId.HYBRID
+        });
+
+        // Insert this overlay map type as the first overlay map type at
+        // position 0. Note that all overlay map types appear on top of
+        // their parent base map.
+        map.overlayMapTypes.insertAt(
+                0, new CoordMapType(new google.maps.Size(256, 256)));
+
+        imageMapType = new google.maps.ImageMapType({
+          getTileUrl: function(coord, zoom) {
+            if (zoom < 5 || zoom > 15) {
+              return null;
+            }
+			return 'https://m4-mapserver.mapy.cz/army2-m/' + zoom + '-' + coord.x + '-' + coord.y;
+          },
+          tileSize: new google.maps.Size(256, 256),
+          opacity: 0.5
+        });
+
+        map.overlayMapTypes.push(imageMapType);
+    }
+
+	var opacity = 0.5;
+	function updateSlider(value) {
+		opacity = Math.min(1.0, Math.max(0.0, parseInt(value) / 100));
+		imageMapType.setOpacity(opacity);
+		document.getElementById("opacity").value = value;
+	}
+
+</script>
+<script async defer
+        src="https://maps.googleapis.com/maps/api/js?key=AIzaSyC1Z6lrl0vLeeihVFwWZekBGb4_7VPUUEY&callback=initMap">
+</script>
+</body>
+</html>
