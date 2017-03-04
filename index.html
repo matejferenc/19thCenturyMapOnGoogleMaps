@@ -93,12 +93,12 @@
             opacity: 0.5
         });
 
-        currentPositionMarker();
+        currentPositionMarker(map);
 
         map.overlayMapTypes.push(imageMapType);
     }
 
-    function currentPositionMarker() {
+    function currentPositionMarker(map) {
         if (navigator.geolocation) {
             navigator.geolocation.getCurrentPosition(function(position) {
                 var pos = {
