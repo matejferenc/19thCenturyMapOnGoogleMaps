@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html>
 <head>
-    <title>Historicka mapa 19 stoleti na Google Maps</title>
+    <title>Historicka mapa</title>
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <style>
         #map {
@@ -23,15 +23,82 @@
 			-webkit-appearance: slider-vertical; /* WebKit */
 			background: #ffffff;
 		}
+		#mapType {
+            position: absolute;
+			top: 50px;
+			left: 10px;
+		}
 		#controls {
 			background: #aabbcc;
 		}
+		/* The switch - the box around the slider */
+        .switch {
+          position: relative;
+          display: inline-block;
+          width: 30px;
+          height: 17px;
+        }
+
+        /* Hide default HTML checkbox */
+        .switch input {display:none;}
+
+        /* The slider */
+        .slider {
+          position: absolute;
+          cursor: pointer;
+          top: 0;
+          left: 0;
+          right: 0;
+          bottom: 0;
+          background-color: #ccc;
+          -webkit-transition: .4s;
+          transition: .4s;
+        }
+
+        .slider:before {
+          position: absolute;
+          content: "";
+          height: 13px;
+          width: 13px;
+          left: 2px;
+          bottom: 2px;
+          background-color: white;
+          -webkit-transition: .4s;
+          transition: .4s;
+        }
+
+        input:checked + .slider {
+          background-color: #2196F3;
+        }
+
+        input:focus + .slider {
+          box-shadow: 0 0 1px #2196F3;
+        }
+
+        input:checked + .slider:before {
+          -webkit-transform: translateX(13px);
+          -ms-transform: translateX(13px);
+          transform: translateX(13px);
+        }
+
+        /* Rounded sliders */
+        .slider.round {
+          border-radius: 17px;
+        }
+
+        .slider.round:before {
+          border-radius: 50%;
+        }
     </style>
 </head>
 <body onload="load();">
 <div id="map"></div>
 <div id="controls">
-    <input type="range" min="1" max="100" step="1" id="opacity" value="50" oninput="updateSlider(this.value)" title="Use Shift + Mouse wheel to change opacity">
+    <label class="switch" id="mapType">
+        <input type="checkbox" onchange="updateMapType(this.checked);">
+        <span class="slider round"></span>
+    </label>
+    <input id="opacity" type="range" min="1" max="100" step="1" value="50" oninput="updateSlider(this.value)" title="Use Shift + Mouse wheel to change opacity">
 </div>
 <script>
 
@@ -49,6 +116,7 @@
 	}
 
 	var imageMapType;
+	var imageMapTypeRoman;
 	var currentPosition;
 
     function initMap() {
@@ -56,7 +124,7 @@
             zoom: 10,
             center: {lat: 50.0850417, lng: 14.4320013},
             mapTypeId: google.maps.MapTypeId.HYBRID,
-            maxZoom: 15
+            maxZoom: 20
         });
 
         imageMapType = new google.maps.ImageMapType({
@@ -69,10 +137,22 @@
             tileSize: new google.maps.Size(256, 256),
             opacity: 0.5
         });
+        map.overlayMapTypes.push(imageMapType);
+
+        imageMapTypeRoman = new google.maps.ImageMapType({
+            getTileUrl: function(coord, zoom) {
+                if (zoom < 5 || zoom > 15) {
+                    return null;
+                }
+			    return 'http://pelagios.org/tilesets/imperium/' + zoom + '/' + coord.x + '/' + coord.y + '.png';
+            },
+            tileSize: new google.maps.Size(256, 256),
+            opacity: 0.5
+        });
+        map.overlayMapTypes.push(imageMapTypeRoman);
 
         currentPositionMarker(map);
 
-        map.overlayMapTypes.push(imageMapType);
     }
 
     function currentPositionMarker(map) {
@@ -102,10 +182,30 @@
     }
 
 	var opacity = 0.5;
+	var mapType = 'czech';
 	function updateSlider(value) {
 		opacity = Math.min(1.0, Math.max(0.0, parseInt(value) / 100));
-		imageMapType.setOpacity(opacity);
+		setOpacities();
 		document.getElementById("opacity").value = value;
+	}
+
+	function setOpacities() {
+	    if (mapType == 'czech') {
+            imageMapType.setOpacity(opacity);
+            imageMapTypeRoman.setOpacity(0);
+	    } else {
+	        imageMapType.setOpacity(0);
+            imageMapTypeRoman.setOpacity(opacity);
+	    }
+    }
+
+	function updateMapType(value) {
+	    if (value) {
+	        mapType = 'czech';
+	    } else {
+	        mapType = 'roman';
+	    }
+	    setOpacities();
 	}
 
 </script>
